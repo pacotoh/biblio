@@ -132,6 +132,10 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# IDE settings
+biblio.iml
+.idea/
+
 # Rope project settings
 .ropeproject
 
