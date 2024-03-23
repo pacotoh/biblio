@@ -7,11 +7,11 @@ This repository was made for research purposes. I won't take responsibility for 
 
 ### Development Process
 
-| Tool             |    Status     |
-|------------------|:-------------:|
-| Goodreads        | ✅ (currently) |
-| Gutenberg        |               |
-| UnitTests        |               |
-| Data Cleaning    |               |
-| ML Models        |               |
-| Jenkins Pipeline |               |
+| Tool             |          Status           |
+|------------------|:-------------------------:|
+| Goodreads        |       ✅ (currently)       |
+| Gutenberg        |       ✅ (currently)       |
+| UnitTests        |                           |
+| Data Cleaning    |                           |
+| ML Models        |                           |
+| Jenkins Pipeline |                           |
