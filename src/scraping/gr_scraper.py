@@ -70,37 +70,46 @@ def get_advanced_info(book_data, book_url: str) -> dict | None:
 
         data_dict = json.loads(data_str)
 
-        book_data['id'] = book_url.split('/')[-1]
-        book_data['format'] = data_dict['format']
-        book_data['num_pages'] = data_dict['numPages']
-        book_data['publication_timestamp'] = data_dict['publicationTime']
-        book_data['publication_date'] = (datetime.fromtimestamp(
-            int(data_dict['publicationTime'])/1000).strftime("%Y-%m-%d"))
-
-        book_data['publisher'] = data_dict['publisher']
-        book_data['isbn'] = data_dict['isbn']
-        book_data['isbn13'] = data_dict['isbn13']
-        book_data['language'] = data_dict['language']['name']
+        generate_basic_info(book_data, book_url, data_dict)
 
         rating_count = re.findall(r'"ratingCount":\d+', html_source)[0].replace('"ratingCount":', '')
         review_count = re.findall(r'"reviewCount":\d+', html_source)[0].replace('"reviewCount":', '')
 
-        # Reviews count by language
-        count_lang = re.findall(r'"count":\d+,"isoLanguageCode":"[a-z]+"', html_source)
-        dict_count_lang = [json.loads('{' + lang + '}') for lang in count_lang]
-        book_data['review_count_by_lang'] = {item['isoLanguageCode']: item['count'] for item in dict_count_lang}
-
-        # Genres
-        genres = re.findall('"bookGenres":.*}}],"details":', html_source)[0].replace(',"details":', '')
-        dict_genres = [json.loads('{' + genres + '}')]
-        book_data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
+        generate_count_by_lang(book_data, html_source)
+        generate_genres(book_data, html_source)
 
         book_data['rating_count'] = rating_count
         book_data['review_count'] = review_count
-    except IndexError | TimeoutError:
+    # FIXME: Not catching error reading the JSON file
+    except IndexError | TimeoutError | json.decoder.JSONDecodeError:
         return None
 
     return book_data
+
+
+def generate_basic_info(book_data, book_url, data_dict):
+    book_data['id'] = book_url.split('/')[-1]
+    book_data['format'] = data_dict['format']
+    book_data['num_pages'] = data_dict['numPages']
+    book_data['publication_timestamp'] = data_dict['publicationTime']
+    book_data['publication_date'] = (datetime.fromtimestamp(
+        int(data_dict['publicationTime']) / 1000).strftime("%Y-%m-%d"))
+    book_data['publisher'] = data_dict['publisher']
+    book_data['isbn'] = data_dict['isbn']
+    book_data['isbn13'] = data_dict['isbn13']
+    book_data['language'] = data_dict['language']['name']
+
+
+def generate_count_by_lang(book_data, html_source):
+    count_lang = re.findall(r'"count":\d+,"isoLanguageCode":"[a-z]+"', html_source)
+    dict_count_lang = [json.loads('{' + lang + '}') for lang in count_lang]
+    book_data['review_count_by_lang'] = {item['isoLanguageCode']: item['count'] for item in dict_count_lang}
+
+
+def generate_genres(book_data, html_source):
+    genres = re.findall('"bookGenres":.*}}],"details":', html_source)[0].replace(',"details":', '')
+    dict_genres = [json.loads('{' + genres + '}')]
+    book_data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
 
 
 def main():
