@@ -1,5 +1,4 @@
 from typing import Any
-
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -7,12 +6,12 @@ import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from datetime import datetime
+from dataclasses import dataclass, field
 
 options = Options()
 options.add_argument("--headless")
 
 
-# TODO: Convert this functions in methods -> Class GoodreadsScraper
 def get_basic_info(soup: BeautifulSoup) -> dict[str, list[Any] | Any] | None:
     try:
         title = soup.find(class_='Text Text__title1').text
@@ -32,6 +31,29 @@ def get_basic_info(soup: BeautifulSoup) -> dict[str, list[Any] | Any] | None:
         'pub_info': pub_info,
         'cover': cover,
     }
+
+
+@dataclass
+class GoodreadsScraper:
+    path: str = field(init=False, repr=False)
+    last_book_id: int = field(init=False, repr=False)
+    books: list = field(default_factory=list, repr=False)
+    output_folder: str = field(init=False, repr=False)
+
+    def __post_init__(self):
+        json_data = json.load(open(file='gr_config.json', encoding='utf-8'))
+        self.last_book_id = int(json_data['last_book_id'])
+        self.path = json_data['gr_path']
+        self.output_folder = json_data['data_path']
+
+    def get_book(self):
+        book_path = f'{self.path}{self.last_book_id}'
+        soup = BeautifulSoup(requests.get(book_path).text, features='html.parser')
+        self.books.append(get_advanced_info(get_basic_info(soup), book_path))
+
+    # TODO: This method should update the value of the last_book_id into the gr_config.json file
+    def _update_book_id(self):
+        pass
 
 
 # TODO: create methods for reviews_count and genres creation
@@ -81,15 +103,13 @@ def get_advanced_info(book_data, book_url: str) -> dict | None:
     return book_data
 
 
-# TODO: Pass only the book_id to the get_book method
-def get_book(book_id: int, books: list):
-    book = f'https://www.goodreads.com/book/show/{book_id}'
-    soup = BeautifulSoup(requests.get(book).text, features='html.parser')
-    books.append(get_advanced_info(get_basic_info(soup), str(book)))
+def main():
+    gs = GoodreadsScraper()
+    gs.get_book()
+    print(gs)
+    print(gs.books)
 
 
 # TODO: Remove this test main method
 if __name__ == '__main__':
-    my_books = []
-    get_book(58473038, my_books)
-    print(my_books)
+    main()
