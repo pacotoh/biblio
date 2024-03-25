@@ -1,6 +1,6 @@
 ## Biblio: Book scraping project
 
-Testing implementation of a book web scraper for creating a books metadata and text database. At the moment it only retrieves metadata from goodreads page but in future gutenberg metadata and books texts scraping will be added. 
+The current implementation of a book web scraper is designed to gather metadata about books, particularly from the Goodreads page. However, this tool can be upgraded to include more sources for data such as Gutenberg's database. The aim is to eventually create a comprehensive database that incorporates both textual content and accompanying metadata, providing valuable insights into literary studies across various genres.
 
 ## ⚠ Disclaimer
 This repository was made for research purposes. I won't take responsibility for any output generated data 😉
