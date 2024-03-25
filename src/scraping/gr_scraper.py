@@ -18,13 +18,14 @@ browser = webdriver.Firefox(options=options)
 class Book:
     url: str = field(init=False)
     soup: BeautifulSoup = field(init=False, repr=False)
-    data: dict = field(init=False)
+    data: dict = field(default_factory=dict)  # FIXME
 
     def __post_init__(self):
         json_data = json.load(open(file='gr_config.json', encoding='utf-8'))
         self.url = f"{json_data['gr_path']}{json_data['last_book_id']}"
         # TODO: Need to create the soup/data when a Book is generated?
         self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
+        self._load_data()
 
     def _get_basic_info(self) -> dict[str, list[Any] | Any] | None:
         try:
@@ -46,10 +47,12 @@ class Book:
             'cover': cover,
         }
 
-    def _get_advanced_info(self, book_data: dict) -> dict | None:
+    def _load_data(self):
         browser.get(self.url)
         html_source = browser.page_source
         browser.quit()
+
+        self.data = self._get_basic_info()
 
         try:
             data_str = (re.findall('"details":.*,"work"', html_source)[0]
@@ -58,43 +61,41 @@ class Book:
 
             data_dict = json.loads(data_str)
 
-            self._generate_publication_info(book_data, data_dict)
+            self._generate_publication_info(data_dict)
 
             rating_count = re.findall(r'"ratingCount":\d+', html_source)[0].replace('"ratingCount":', '')
             review_count = re.findall(r'"reviewCount":\d+', html_source)[0].replace('"reviewCount":', '')
 
-            self._generate_count_by_lang(book_data, html_source)
-            self._generate_genres(book_data, html_source)
+            self._generate_count_by_lang(html_source)
+            self._generate_genres(html_source)
 
-            book_data['rating_count'] = rating_count
-            book_data['review_count'] = review_count
+            self.data['rating_count'] = rating_count
+            self.data['review_count'] = review_count
         # FIXME: Not catching error reading the JSON file
         except IndexError | TimeoutError | json.decoder.JSONDecodeError:
             return None
 
-        return book_data
-
-    def _generate_publication_info(self, book_data, data_dict):
-        book_data['id'] = self.url.split('/')[-1]
-        book_data['format'] = data_dict['format']
-        book_data['num_pages'] = data_dict['numPages']
-        book_data['publication_timestamp'] = data_dict['publicationTime']
-        book_data['publication_date'] = (datetime.fromtimestamp(
+    def _generate_publication_info(self, data_dict):
+        self.data['id'] = self.url.split('/')[-1]
+        self.data['format'] = data_dict['format']
+        self.data['num_pages'] = data_dict['numPages']
+        self.data['publication_timestamp'] = data_dict['publicationTime']
+        self.data['publication_date'] = (datetime.fromtimestamp(
             int(data_dict['publicationTime']) / 1000).strftime("%Y-%m-%d"))
-        book_data['publisher'] = data_dict['publisher']
-        book_data['isbn'] = data_dict['isbn']
-        book_data['isbn13'] = data_dict['isbn13']
-        book_data['language'] = data_dict['language']['name']
+        self.data['publisher'] = data_dict['publisher']
+        self.data['isbn'] = data_dict['isbn']
+        self.data['isbn13'] = data_dict['isbn13']
+        self.data['language'] = data_dict['language']['name']
 
-    def _generate_count_by_lang(self, book_data, html_source):
+    def _generate_count_by_lang(self, html_source):
         count_lang = re.findall(r'"count":\d+,"isoLanguageCode":"[a-z]+"', html_source)
         dict_count_lang = [json.loads('{' + lang + '}') for lang in count_lang]
-        book_data['review_count_by_lang'] = {item['isoLanguageCode']: item['count'] for item in dict_count_lang}
+        self.data['review_count_by_lang'] = {item['isoLanguageCode']: item['count'] for item in dict_count_lang}
 
-    def _generate_genres(self, book_data, html_source):
+    def _generate_genres(self, html_source):
         genres = re.findall('"bookGenres":.*}}],"details":', html_source)[0].replace(',"details":', '')
         dict_genres = [json.loads('{' + genres + '}')]
-        book_data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
+        self.data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
 
 
 @dataclass
@@ -111,10 +112,13 @@ class GoodreadsScraper:
         self.path = self.json_data['gr_path']
         self.output_folder = self.json_data['data_path']
         # TODO: Retrieve from book info
-        self.current_soup = BeautifulSoup(requests.get(f'{self.path}{self.last_book_id}').text, features='html.parser')
 
-    def get_book(self):
-        self.books.append(self._get_advanced_info(self._get_basic_info()))
+    def _append_book(self):
+        book = Book()
+        if book:
+            self.books.append(book)
+
+        self.last_book_id += 1
 
     def _update_book_id(self):
         self.json_data["last_book_id"] = self.last_book_id
@@ -133,8 +137,7 @@ class GoodreadsScraper:
         end_time = start_time + timedelta(minutes=time_in_minutes)
 
         while True:
-            self.get_book()
-            self.last_book_id += 1
+            self._append_book()
             current_time = datetime.now()
             if current_time >= end_time:
                 break
@@ -144,8 +147,8 @@ class GoodreadsScraper:
 
 
 def main():
-    scraper = GoodreadsScraper()
-    scraper._update_book_id()
+    book = Book()
+    print(book)
 
 
 # TODO: Remove this test main method
