@@ -136,6 +136,9 @@ venv.bak/
 biblio.iml
 .idea/
 
+# Data files
+*.csv
+
 # Rope project settings
 .ropeproject
 
