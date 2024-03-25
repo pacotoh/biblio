@@ -11,19 +11,19 @@ import pandas as pd
 
 options = Options()
 options.add_argument("--headless")
-browser = webdriver.Firefox(options=options)
+CONFIG_JSON = 'gr_config.json'
 
 
 @dataclass
 class Book:
     url: str = field(init=False)
     soup: BeautifulSoup = field(init=False, repr=False)
-    data: dict = field(default_factory=dict)  # FIXME
+    book_id: int = field()
+    data: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        json_data = json.load(open(file='gr_config.json', encoding='utf-8'))
-        self.url = f"{json_data['gr_path']}{json_data['last_book_id']}"
-        # TODO: Need to create the soup/data when a Book is generated?
+        json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+        self.url = f"{json_data['gr_path']}{self.book_id}"
         self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
         self._load_data()
 
@@ -48,6 +48,7 @@ class Book:
         }
 
     def _load_data(self):
+        browser = webdriver.Firefox(options=options)
         browser.get(self.url)
         html_source = browser.page_source
         browser.quit()
@@ -55,7 +56,7 @@ class Book:
         self.data = self._get_basic_info()
 
         try:
-            data_str = (re.findall('"details":.*,"work"', html_source)[0]
+            data_str = (re.findall('{"__typename":"BookDetails".*,"work"', html_source)[0]
                         .replace('"details":', '')
                         .replace(',"work"', ''))
 
@@ -71,9 +72,9 @@ class Book:
 
             self.data['rating_count'] = rating_count
             self.data['review_count'] = review_count
-        # FIXME: Not catching error reading the JSON file
-        except IndexError | TimeoutError | json.decoder.JSONDecodeError:
-            return None
+        except Exception as e:
+            # TODO: Log these errors
+            print(self.book_id, e)
 
     def _generate_publication_info(self, data_dict):
         self.data['id'] = self.url.split('/')[-1]
@@ -93,9 +94,12 @@ class Book:
         self.data['review_count_by_lang'] = {item['isoLanguageCode']: item['count'] for item in dict_count_lang}
 
     def _generate_genres(self, html_source):
-        genres = re.findall('"bookGenres":.*}}],"details":', html_source)[0].replace(',"details":', '')
-        dict_genres = [json.loads('{' + genres + '}')]
-        self.data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
+        genres = re.findall('"bookGenres":.*}}],"details":', html_source)
+        if len(genres) == 0:
+            self.data['genres'] = []
+        else:
+            dict_genres = [json.loads('{' + genres[0].replace(',"details":', '') + '}')]
+            self.data['genres'] = [genre['genre']['name'] for genre in dict_genres[0]['bookGenres']]
 
 
 @dataclass
@@ -107,32 +111,30 @@ class GoodreadsScraper:
     json_data: str = field(init=False, repr=False)
 
     def __post_init__(self):
-        self.json_data = json.load(open(file='gr_config.json', encoding='utf-8'))
+        self.json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.last_book_id = int(self.json_data['last_book_id'])
         self.path = self.json_data['gr_path']
         self.output_folder = self.json_data['data_path']
-        # TODO: Retrieve from book info
 
     def _append_book(self):
-        book = Book()
-        if book:
-            self.books.append(book)
+        book = Book(book_id=self.last_book_id)
+        if book and book.data:
+            self.books.append(book.data)
 
         self.last_book_id += 1
 
     def _update_book_id(self):
         self.json_data["last_book_id"] = self.last_book_id
-        with open('gr_config.json', 'w') as f:
+        with open(CONFIG_JSON, 'w') as f:
             json.dump(self.json_data, f, indent=2)
-        print(self.json_data)
 
     def _save_books_to_csv(self):
         date_string = datetime.now().strftime('%Y%m%d%H%M%S')
         df = pd.DataFrame(self.books)
 
-        df.to_csv(f'{self.json_data["data_path"]}{date_string}', index=False)
+        df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
 
-    def exec(self, time_in_minutes: int = 20):
+    def exec(self, time_in_minutes: int = 5):
         start_time = datetime.now()
         end_time = start_time + timedelta(minutes=time_in_minutes)
 
@@ -147,10 +149,8 @@ class GoodreadsScraper:
 
 
 def main():
-    book = Book()
-    print(book)
+    GoodreadsScraper().exec()
 
 
-# TODO: Remove this test main method
 if __name__ == '__main__':
     main()
