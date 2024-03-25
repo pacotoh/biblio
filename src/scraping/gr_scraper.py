@@ -14,14 +14,40 @@ options.add_argument("--headless")
 
 # TODO: Continue with the BookInfo dataclass
 @dataclass
-class BookInfo:
-    book_url: str = field(init=False)
-    book_soup: BeautifulSoup = field(init=False, repr=False)
+class Book:
+    url: str = field(init=False)
+    soup: BeautifulSoup = field(init=False, repr=False)
+    data: dict = field(init=False)
+
+    def __init__(self, book_id: int = 1):
+        # TODO: Initialize data dict with _get_basic_info and _get_advanced_info
+        pass
 
     def __post_init__(self):
         json_data = json.load(open(file='gr_config.json', encoding='utf-8'))
-        self.book_url = f"{json_data['gr_path']}{json_data['last_book_id']}"
-        self.book_soup = BeautifulSoup(requests.get(self.book_url).text, features='html.parser')
+        self.url = f"{json_data['gr_path']}{json_data['last_book_id']}"
+        # TODO: Need to create the soup/data when a Book is generated?
+        self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
+
+    def _get_basic_info(self) -> dict[str, list[Any] | Any] | None:
+        try:
+            title = self.soup.find(class_='Text Text__title1').text
+            authors = [cla.text for cla in self.soup.find_all(class_='ContributorLink__name')]
+            rating = self.soup.find(class_="RatingStatistics__rating").text
+            desc = self.soup.find(class_="DetailsLayoutRightParagraph__widthConstrained").text
+            pub_info = self.soup.find('p', {'data-testid': 'publicationInfo'}).text
+            cover = self.soup.find(class_='ResponsiveImage').get('src')
+        except AttributeError:
+            return None
+
+        return {
+            'title': title,
+            'authors': authors,
+            'rating_value': rating,
+            'desc': desc,
+            'pub_info': pub_info,
+            'cover': cover,
+        }
 
 
 @dataclass
@@ -38,26 +64,6 @@ class GoodreadsScraper:
         self.output_folder = json_data['data_path']
         # TODO: Retrieve from book info
         self.current_soup = BeautifulSoup(requests.get(f'{self.path}{self.last_book_id}').text, features='html.parser')
-
-    def _get_basic_info(self) -> dict[str, list[Any] | Any] | None:
-        try:
-            title = self.current_soup.find(class_='Text Text__title1').text
-            authors = [cla.text for cla in self.current_soup.find_all(class_='ContributorLink__name')]
-            rating = self.current_soup.find(class_="RatingStatistics__rating").text
-            desc = self.current_soup.find(class_="DetailsLayoutRightParagraph__widthConstrained").text
-            pub_info = self.current_soup.find('p', {'data-testid': 'publicationInfo'}).text
-            cover = self.current_soup.find(class_='ResponsiveImage').get('src')
-        except AttributeError:
-            return None
-
-        return {
-            'title': title,
-            'authors': authors,
-            'rating_value': rating,
-            'desc': desc,
-            'pub_info': pub_info,
-            'cover': cover,
-        }
 
     def get_book(self):
         self.books.append(self._get_advanced_info(self._get_basic_info()))
@@ -124,8 +130,9 @@ def generate_genres(book_data, html_source):
 
 
 def main():
-    bi = BookInfo()
+    bi = Book()
     print(bi)
+    print(bi.soup)
 
 
 # TODO: Remove this test main method

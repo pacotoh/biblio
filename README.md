@@ -13,5 +13,6 @@ This repository was made for research purposes. I won't take responsibility for 
 | Gutenberg        |       ✅ (currently)       |
 | UnitTests        |                           |
 | Data Cleaning    |                           |
+| PostgreSQL       |                           |
 | ML Models        |                           |
 | Jenkins Pipeline |                           |
