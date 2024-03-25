@@ -8,10 +8,18 @@ from selenium.webdriver.firefox.options import Options
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 import pandas as pd
+import logging
 
 options = Options()
 options.add_argument("--headless")
 CONFIG_JSON = 'gr_config.json'
+LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
+
+logging.basicConfig(
+    filename=f'../../logs/{LOG_FILE}.log',
+    level=logging.INFO,
+    format='[%(asctime)s]: %(levelname)s %(message)s'
+)
 
 
 @dataclass
@@ -36,6 +44,7 @@ class Book:
             pub_info = self.soup.find('p', {'data-testid': 'publicationInfo'}).text
             cover = self.soup.find(class_='ResponsiveImage').get('src')
         except AttributeError:
+            logging.error(msg=f'Basic info not available for book_id: {self.book_id}')
             return None
 
         return {
@@ -73,8 +82,7 @@ class Book:
             self.data['rating_count'] = rating_count
             self.data['review_count'] = review_count
         except Exception as e:
-            # TODO: Log these errors
-            print(self.book_id, e)
+            logging.error(msg=f'Advanced info not available for book_id: {self.book_id} -> {e}')
 
     def _generate_publication_info(self, data_dict):
         self.data['id'] = self.url.split('/')[-1]
@@ -120,6 +128,7 @@ class GoodreadsScraper:
         book = Book(book_id=self.last_book_id)
         if book and book.data:
             self.books.append(book.data)
+            logging.info(msg=f'Book {self.last_book_id} added')
 
         self.last_book_id += 1
 
@@ -133,10 +142,12 @@ class GoodreadsScraper:
         df = pd.DataFrame(self.books)
 
         df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
+        logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 5):
+    def exec(self, time_in_minutes: int = 2):
         start_time = datetime.now()
         end_time = start_time + timedelta(minutes=time_in_minutes)
+        logging.info(msg=f'GR Scraping started at {start_time}')
 
         while True:
             self._append_book()
@@ -146,6 +157,7 @@ class GoodreadsScraper:
 
         self._save_books_to_csv()
         self._update_book_id()
+        logging.info(msg=f'GR Scraping ended at {datetime.now()}')
 
 
 def main():
