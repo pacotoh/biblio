@@ -1,0 +1,17 @@
+{
+  "gr": {
+    "last_book_id": 1,
+    "path": "https://www.goodreads.com/book/show/",
+    "data_path": "../../data/gr/"
+  },
+  "gt": {
+    "last_book_id": 1,
+    "path": "https://www.goodreads.com/book/show/",
+    "data_path": "../../data/gt/",
+    "metadata_path": "../../data/gt/"
+  },
+  "wk": {
+    "path": "https://en.wikipedia.org/wiki/Special:Random",
+    "data_path": "../../data/wk/"
+  }
+}
