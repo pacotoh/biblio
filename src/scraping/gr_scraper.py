@@ -145,7 +145,7 @@ class GoodreadsScraper:
         df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
         logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 30):
+    def exec(self, time_in_minutes: int = 20):
         start = datetime.now()
         end = start + timedelta(minutes=time_in_minutes)
 

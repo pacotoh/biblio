@@ -71,11 +71,14 @@ def execute(function, executor, from_id, to_id):
 
 def exec():
     new_book_id = last_book_id + int(BATCH_SIZE)
+    start_time = datetime.now()
+    logging.info(msg=f'GT Scraping started at {start_time}')
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         execute(get_book, executor, last_book_id, new_book_id)
         execute(get_metadata, executor, last_book_id, new_book_id)
 
+    logging.info(msg=f'GT Scraping ended at {datetime.now()}')
     update_book_id(new_book_id)
 
 
