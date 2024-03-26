@@ -13,7 +13,7 @@ import schedule
 
 options = Options()
 options.add_argument("--headless")
-CONFIG_JSON = 'gr_config.json'
+CONFIG_JSON = 'config/gr_config.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
 
 logging.basicConfig(
@@ -117,7 +117,7 @@ class GoodreadsScraper:
     last_book_id: int = field(init=False, repr=False)
     books: list = field(default_factory=list, repr=False)
     output_folder: str = field(init=False, repr=False)
-    json_data: str = field(init=False, repr=False)
+    json_data: dict = field(init=False, repr=False)
 
     def __post_init__(self):
         self.json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
@@ -145,7 +145,7 @@ class GoodreadsScraper:
         df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
         logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 2):
+    def exec(self, time_in_minutes: int = 30):
         start = datetime.now()
         end = start + timedelta(minutes=time_in_minutes)
 
@@ -162,7 +162,7 @@ class GoodreadsScraper:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    end_time = start_time + timedelta(minutes=10)
+    end_time = start_time + timedelta(hours=4)
     logging.info(msg=f'GR Scraping started at {start_time}')
 
     schedule.every().minute.do(GoodreadsScraper().exec)
