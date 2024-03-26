@@ -1,4 +1,3 @@
-import time
 from typing import Any
 from bs4 import BeautifulSoup
 import requests
@@ -33,7 +32,7 @@ class Book:
 
     def __post_init__(self):
         json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
-        self.url = f"{json_data['gr_path']}{self.book_id}"
+        self.url = f"{json_data['path']}{self.book_id}"
         self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
         self._load_data()
 
@@ -123,7 +122,7 @@ class GoodreadsScraper:
     def __post_init__(self):
         self.json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.last_book_id = int(self.json_data['last_book_id'])
-        self.path = self.json_data['gr_path']
+        self.path = self.json_data['path']
         self.output_folder = self.json_data['data_path']
 
     def _append_book(self):
@@ -146,7 +145,7 @@ class GoodreadsScraper:
         df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False, header=False)
         logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 30):
+    def exec(self, time_in_minutes: int = 2):
         start = datetime.now()
         end = start + timedelta(minutes=time_in_minutes)
 
@@ -162,7 +161,7 @@ class GoodreadsScraper:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    end_time = start_time + timedelta(hours=8)
+    end_time = start_time + timedelta(minutes=5)
     logging.info(msg=f'GR Scraping started at {start_time}')
 
     schedule.every().minute.do(GoodreadsScraper().exec)
