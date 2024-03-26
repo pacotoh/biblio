@@ -1,0 +1,7 @@
+{
+  "last_book_id": 1,
+  "pathm": "https://www.gutenberg.org/ebooks/",
+  "pathc": "https://www.gutenberg.org/cache/epub/73264/pg73264.txt",
+  "metadata_path": "../../data/gt/metadata/",
+  "content_path": "../../data/gt/content/"
+}

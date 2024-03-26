@@ -13,7 +13,7 @@ import schedule
 
 options = Options()
 options.add_argument("--headless")
-CONFIG_JSON = 'config.json'
+CONFIG_JSON = 'gr_config.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
 
 logging.basicConfig(
@@ -31,7 +31,7 @@ class Book:
     data: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))['gr']
+        json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.url = f"{json_data['path']}{self.book_id}"
         self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
         self._load_data()
@@ -120,7 +120,7 @@ class GoodreadsScraper:
     json_data: str = field(init=False, repr=False)
 
     def __post_init__(self):
-        self.json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))['gr']
+        self.json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.last_book_id = int(self.json_data['last_book_id'])
         self.path = self.json_data['path']
         self.output_folder = self.json_data['data_path']
@@ -134,11 +134,9 @@ class GoodreadsScraper:
         self.last_book_id += 1
 
     def _update_book_id(self):
-        config_json = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
-        print(config_json)
-        config_json["gr"]["last_book_id"] = self.last_book_id
+        self.json_data["last_book_id"] = self.last_book_id
         with open(CONFIG_JSON, 'w') as f:
-            json.dump(config_json, f, indent=2)
+            json.dump(self.json_data, f, indent=2)
 
     def _save_books_to_csv(self):
         date_string = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -147,7 +145,7 @@ class GoodreadsScraper:
         df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
         logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 60):
+    def exec(self, time_in_minutes: int = 2):
         start = datetime.now()
         end = start + timedelta(minutes=time_in_minutes)
 
@@ -164,7 +162,7 @@ class GoodreadsScraper:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    end_time = start_time + timedelta(hours=4)
+    end_time = start_time + timedelta(minutes=10)
     logging.info(msg=f'GR Scraping started at {start_time}')
 
     schedule.every().minute.do(GoodreadsScraper().exec)
