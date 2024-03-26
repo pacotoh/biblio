@@ -138,6 +138,7 @@ biblio.iml
 
 # Data files
 *.csv
+*.txt
 
 # Rope project settings
 .ropeproject

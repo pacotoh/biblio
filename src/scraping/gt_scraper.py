@@ -3,14 +3,18 @@ import concurrent.futures
 import json
 import logging
 from datetime import datetime
-
+from bs4 import BeautifulSoup
+import pandas as pd
+import os
 
 CONFIG_JSON = 'config/gt_config.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 last_book_id = config['last_book_id']
-BATCH_SIZE = config['batch_size']
+BATCH_SIZE = int(config['batch_size'])
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
+METADATA_FOLDER = f'{config["metadata_path"]}'
 NOT_FOUND = '<title>404 | Project Gutenberg</title>'
+CHUNK_SIZE = 1024
 
 
 logging.basicConfig(
@@ -27,7 +31,7 @@ def get_book(book_id: int):
     response = requests.get(content_path, stream=True)
     if NOT_FOUND not in response.text:
         with open(f'{config["content_path"]}{file_name}', 'wb') as out_file:
-            for chunk in response.iter_content(chunk_size=1024):
+            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 if chunk:
                     out_file.write(chunk)
         logging.info(msg=f'Book {book_id} added')
@@ -36,8 +40,16 @@ def get_book(book_id: int):
 
 
 def get_metadata(book_id: int):
+    os.makedirs(METADATA_FOLDER, exist_ok=True)
     metadata_path = str(config['pathm']).replace('{book_id}', str(book_id))
-    logging.info(msg=f'{metadata_path}')
+    soup = BeautifulSoup(requests.get(metadata_path).text, features='html.parser')
+    table = soup.find('table', {'class': 'bibrec'})
+
+    if table:
+        header = [td.text.replace('\n', '') for td in table.find_all('th')]
+        data = [td.text.replace('\n', '') for td in table.find_all('td')][:-1]
+        pd.DataFrame(columns=header, data=[data]).to_csv(f'{METADATA_FOLDER}{book_id}.csv', header=True)
+        logging.info(msg=f'Book {book_id} in {metadata_path} processed')
 
 
 def update_book_id(current_id: int):
