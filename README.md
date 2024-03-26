@@ -7,10 +7,16 @@ This repository was made for research purposes. I won't take responsibility for 
 
 ### Development Process
 
+#### TODO LIST
+* Create subfolders (date) for data scraped
+* Create subfolders (date) for logs
+* Join all dataframes into one on **GT** using concat
+* Start **WK** scraping
+
 | Tool          |    Status     |
 |---------------|:-------------:|
 | Goodreads     |       ✅       |
-| Gutenberg     | ✅ (currently) |
+| Gutenberg     | ✅   (current) |
 | Wikipedia     |               |
 | Automation    |               |
 | Data Cleaning |               |
