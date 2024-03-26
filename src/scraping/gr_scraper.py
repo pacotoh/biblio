@@ -1,3 +1,4 @@
+import time
 from typing import Any
 from bs4 import BeautifulSoup
 import requests
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 import pandas as pd
 import logging
+import schedule
 
 options = Options()
 options.add_argument("--headless")
@@ -141,28 +143,34 @@ class GoodreadsScraper:
         date_string = datetime.now().strftime('%Y%m%d%H%M%S')
         df = pd.DataFrame(self.books)
 
-        df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
+        df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False, header=False)
         logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
 
-    def exec(self, time_in_minutes: int = 2):
-        start_time = datetime.now()
-        end_time = start_time + timedelta(minutes=time_in_minutes)
-        logging.info(msg=f'GR Scraping started at {start_time}')
+    def exec(self, time_in_minutes: int = 30):
+        start = datetime.now()
+        end = start + timedelta(minutes=time_in_minutes)
 
         while True:
             self._append_book()
-            current_time = datetime.now()
-            if current_time >= end_time:
+            current = datetime.now()
+            if current >= end:
                 break
 
         self._save_books_to_csv()
         self._update_book_id()
-        logging.info(msg=f'GR Scraping ended at {datetime.now()}')
-
-
-def main():
-    GoodreadsScraper().exec()
 
 
 if __name__ == '__main__':
-    main()
+    start_time = datetime.now()
+    end_time = start_time + timedelta(hours=8)
+    logging.info(msg=f'GR Scraping started at {start_time}')
+
+    schedule.every().minute.do(GoodreadsScraper().exec)
+    while True:
+        schedule.run_pending()
+
+        current_time = datetime.now()
+        if current_time >= end_time:
+            break
+
+    logging.info(msg=f'GR Scraping ended at {datetime.now()}')
