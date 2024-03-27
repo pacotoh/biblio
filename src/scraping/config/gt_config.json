@@ -4,6 +4,5 @@
   "pathc": "https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
   "metadata_path": "../../data/gt/metadata/",
   "content_path": "../../data/gt/content/",
-  "batch_size": 10000,
-  "max_id": 80000
+  "batch_size": 1000
 }
