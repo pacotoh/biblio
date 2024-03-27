@@ -8,14 +8,13 @@ This repository was made for research purposes. I won't take responsibility for 
 ### Development Process
 
 #### TODO LIST
-* Create subfolders (date) for logs
 
 | Tool          | Status |
 |---------------|:------:|
 | Goodreads     |   ✅    |
 | Gutenberg     |   ✅    |
-| Wikipedia     |   🚧   |
-| Automation    |        |
+| Wikipedia     |   ✅    |
+| Automation    |   🚧   |
 | Data Cleaning |        |
 | Data Quality  |        |
 | PostgreSQL    |        |
