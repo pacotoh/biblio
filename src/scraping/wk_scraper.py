@@ -41,7 +41,7 @@ def exec():
     os.makedirs(f'{DATA_PATH}', exist_ok=True)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_url = {executor.submit(get_article): i for i in range(1, BATCH_SIZE+1)}
+        future_to_url = {executor.submit(get_article): i for i in range(BATCH_SIZE)}
         for future in concurrent.futures.as_completed(future_to_url):
             url = future_to_url[future]
             try:
