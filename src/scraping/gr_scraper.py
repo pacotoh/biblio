@@ -1,3 +1,4 @@
+import os
 from typing import Any
 from bs4 import BeautifulSoup
 import requests
@@ -140,10 +141,12 @@ class GoodreadsScraper:
 
     def _save_books_to_csv(self):
         date_string = datetime.now().strftime('%Y%m%d%H%M%S')
+        output_folder = f'{self.json_data["data_path"]}{datetime.now().strftime("%Y%m%d")}'
+        os.makedirs(output_folder, exist_ok=True)
         df = pd.DataFrame(self.books)
 
-        df.to_csv(f'{self.json_data["data_path"]}{date_string}.csv', index=False)
-        logging.info(msg=f'{len(self.books)} books added to {self.json_data["data_path"]}{date_string}.csv')
+        df.to_csv(f'{output_folder}/{date_string}.csv', index=False)
+        logging.info(msg=f'{len(self.books)} books added to {output_folder}/{date_string}.csv')
 
     def exec(self, time_in_minutes: int = 20):
         start = datetime.now()
