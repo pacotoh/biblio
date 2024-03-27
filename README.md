@@ -9,14 +9,14 @@ This repository was made for research purposes. I won't take responsibility for 
 
 #### TODO LIST
 * Create subfolders (date) for logs
-* Start **WK** scraping
 
 | Tool          | Status |
 |---------------|:------:|
 | Goodreads     |   ✅    |
 | Gutenberg     |   ✅    |
-| Wikipedia     |        |
+| Wikipedia     |   🚧   |
 | Automation    |        |
 | Data Cleaning |        |
+| Data Quality  |        |
 | PostgreSQL    |        |
 | ML Models     |        |

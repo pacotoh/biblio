@@ -1,0 +1,5 @@
+{
+  "path": "https://en.wikipedia.org/wiki/Special:Random",
+  "data_path": "../../data/wk/",
+  "batch_size": 10
+}
