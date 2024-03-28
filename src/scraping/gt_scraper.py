@@ -36,7 +36,6 @@ def get_book(book_id: int):
             for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 if chunk:
                     out_file.write(chunk)
-        # logging.info(msg=f'Book {book_id} added')
     else:
         logging.info(msg=f'Book {book_id} not available')
 
