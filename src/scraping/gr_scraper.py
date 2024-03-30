@@ -166,6 +166,9 @@ class GoodreadsScraper:
 if __name__ == '__main__':
     start_time = datetime.now()
     end_time = start_time + timedelta(hours=4)
+    config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+    os.makedirs(f'{config["data_path"]}', exist_ok=True)
+
     logging.info(msg=f'GR Scraping started at {start_time}')
 
     schedule.every().minute.do(GoodreadsScraper().exec)

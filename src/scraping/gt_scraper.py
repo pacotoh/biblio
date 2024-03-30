@@ -90,6 +90,10 @@ def execute(function, executor, from_id, to_id):
 def exec():
     new_book_id = last_book_id + int(BATCH_SIZE)
     start_time = datetime.now()
+
+    os.makedirs(f'{config["metadata_path"]}', exist_ok=True)
+    os.makedirs(f'{config["content_path"]}', exist_ok=True)
+
     logging.info(msg=f'GT Scraping started at {start_time}')
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
