@@ -1,10 +1,11 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import requests
 from bs4 import BeautifulSoup
 import os
 import concurrent.futures
+import schedule
 
 CONFIG_JSON = 'config/wk_config.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
@@ -35,11 +36,6 @@ def get_article():
 
 
 def exec():
-    start_time = datetime.now()
-    logging.info(msg=f'GT Scraping started at {start_time}')
-
-    os.makedirs(f'{DATA_PATH}', exist_ok=True)
-
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_url = {executor.submit(get_article): i for i in range(BATCH_SIZE)}
         for future in concurrent.futures.as_completed(future_to_url):
@@ -49,8 +45,22 @@ def exec():
             except Exception as exc:
                 print('%r generated an exception: %s' % (url, exc))
 
-    logging.info(msg=f'WK Scraping ended at {datetime.now()}')
-
 
 if __name__ == '__main__':
-    exec()
+    start_time = datetime.now()
+    logging.info(msg=f'WK Scraping started at {start_time}')
+    os.makedirs(f'{DATA_PATH}', exist_ok=True)
+
+    end_time = start_time + timedelta(minutes=10)
+    config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+    os.makedirs(f'{config["data_path"]}', exist_ok=True)
+
+    schedule.every().minute.do(exec)
+    while True:
+        schedule.run_pending()
+
+        current_time = datetime.now()
+        if current_time >= end_time:
+            break
+
+    logging.info(msg=f'WK Scraping ended at {datetime.now()}')
