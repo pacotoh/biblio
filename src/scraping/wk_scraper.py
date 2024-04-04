@@ -51,7 +51,7 @@ if __name__ == '__main__':
     logging.info(msg=f'WK Scraping started at {start_time}')
     os.makedirs(f'{DATA_PATH}', exist_ok=True)
 
-    end_time = start_time + timedelta(minutes=10)
+    end_time = start_time + timedelta(hours=8)
     config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
     os.makedirs(f'{config["data_path"]}', exist_ok=True)
 

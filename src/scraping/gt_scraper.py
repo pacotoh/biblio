@@ -2,10 +2,11 @@ import requests
 import concurrent.futures
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
+import schedule
 
 CONFIG_JSON = 'config/gt_config.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
@@ -89,21 +90,30 @@ def execute(function, executor, from_id, to_id):
 
 def exec():
     new_book_id = last_book_id + int(BATCH_SIZE)
-    start_time = datetime.now()
-
-    os.makedirs(f'{config["metadata_path"]}', exist_ok=True)
-    os.makedirs(f'{config["content_path"]}', exist_ok=True)
-
-    logging.info(msg=f'GT Scraping started at {start_time}')
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         execute(get_book, executor, last_book_id, new_book_id)
         execute(get_metadata, executor, last_book_id, new_book_id)
 
-    logging.info(msg=f'GT Scraping ended at {datetime.now()}')
     update_book_id(new_book_id)
     compact_metadata()
 
 
 if __name__ == '__main__':
-    exec()
+    start_time = datetime.now()
+    os.makedirs(f'{METADATA_FOLDER}', exist_ok=True)
+    os.makedirs(f'{CONTENT_FOLDER}', exist_ok=True)
+
+    logging.info(msg=f'GT Scraping started at {start_time}')
+
+    end_time = start_time + timedelta(hours=8)
+    schedule.every(5).minutes.do(exec)
+    while True:
+        schedule.run_pending()
+
+        current_time = datetime.now()
+        if current_time >= end_time:
+            break
+
+    logging.info(msg=f'GT Scraping ended at {datetime.now()}')
+

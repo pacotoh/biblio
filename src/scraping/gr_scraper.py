@@ -165,7 +165,7 @@ class GoodreadsScraper:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    end_time = start_time + timedelta(hours=6)
+    end_time = start_time + timedelta(hours=8)
     config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
     os.makedirs(f'{config["data_path"]}', exist_ok=True)
 
