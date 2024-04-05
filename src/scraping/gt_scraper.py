@@ -10,7 +10,6 @@ import schedule
 
 CONFIG_JSON = 'config/gt_config.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
-last_book_id = config['last_book_id']
 BATCH_SIZE = int(config['batch_size'])
 DATE_TIME = datetime.now().strftime('%Y%m%d%H%M%S')
 DATE = datetime.now().strftime('%Y%m%d')
@@ -89,6 +88,7 @@ def execute(function, executor, from_id, to_id):
 
 
 def exec():
+    last_book_id = json.load(open(file=CONFIG_JSON, encoding='utf-8'))['last_book_id']
     new_book_id = last_book_id + int(BATCH_SIZE)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -96,7 +96,6 @@ def exec():
         execute(get_metadata, executor, last_book_id, new_book_id)
 
     update_book_id(new_book_id)
-    compact_metadata()
 
 
 if __name__ == '__main__':
@@ -114,6 +113,8 @@ if __name__ == '__main__':
         current_time = datetime.now()
         if current_time >= end_time:
             break
+
+    compact_metadata()
 
     logging.info(msg=f'GT Scraping ended at {datetime.now()}')
 
