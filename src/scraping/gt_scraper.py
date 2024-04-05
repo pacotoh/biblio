@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     logging.info(msg=f'GT Scraping started at {start_time}')
 
-    end_time = start_time + timedelta(hours=8)
+    end_time = start_time + timedelta(hours=1)
     schedule.every(5).minutes.do(exec)
     while True:
         schedule.run_pending()
