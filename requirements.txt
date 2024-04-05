@@ -4,3 +4,4 @@ pandas==2.2.1
 requests==2.31.0
 schedule==1.2.1
 selenium==4.18.1
+nltk==3.8.1
