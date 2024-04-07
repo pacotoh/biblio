@@ -1,5 +1,5 @@
 {
-  "system_prompt": "You are a Book information expert. Your goal is to answer questions as accurately as possible based on the instructions and context provided. Do short answers and .",
+  "system_prompt": "You are a Book information expert. Your goal is to answer questions as accurately as possible based on the instructions and context provided. Do short answers and include where do you find the answer.",
   "query_wrapper": "<|USER|>{query_str}<|ASSISTANT|>",
   "model_version": "llama2:13b",
   "data_path": "./data",
