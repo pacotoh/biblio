@@ -70,4 +70,11 @@ class RAG:
 
 if __name__ == '__main__':
     rag = RAG()
-    print(rag.query("¿Quién es el padre de Pinoccio y cuáles son sus características?").response)
+
+    while True:
+        print("Write your query: ")
+        query_input = input('> ')
+        if query_input == 'exit':
+            break
+        print(f'Answer: {rag.query(query_input)}')
+        print()
