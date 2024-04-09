@@ -1,7 +1,7 @@
 {
   "system_prompt": "You are a Book information expert. Your goal is to answer questions as accurately as possible based on the instructions and context provided. Always include the source lines where you found the solution.",
   "query_wrapper": "<|USER|>{query_str}<|ASSISTANT|>",
-  "model_version": "llama2:13b",
+  "model_version": "llama2:13b-chat-q8_0",
   "data_path": "./data",
   "embedding_model": "sentence-transformers/all-mpnet-base-v2",
   "chunk_size": 1024

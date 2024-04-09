@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass, field
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core.response.pprint_utils import pprint_response
 from llama_index.llms.ollama import Ollama
 from llama_index.core.prompts.prompts import SimpleInputPrompt
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
@@ -52,7 +53,7 @@ class RAG:
 
     def query(self, question: str):
         query_engine = self.index.as_query_engine()
-        return query_engine.query(question)
+        pprint_response(query_engine.query(question), show_source=True)
 
 
 if __name__ == '__main__':
@@ -63,5 +64,5 @@ if __name__ == '__main__':
         query_input = input('> ')
         if query_input == 'exit':
             break
-        print(f'Answer: {rag.query(query_input)}')
+        rag.query(query_input)
         print()
