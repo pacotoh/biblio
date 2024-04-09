@@ -30,7 +30,7 @@ class RAG:
         )
 
         self._generate_docs()
-        self._generate_metadata()
+        self._generate_metadata(json_data['metadata_path'])
 
         self.service_context = ServiceContext.from_defaults(
             chunk_size=json_data['chunk_size'],
@@ -39,12 +39,15 @@ class RAG:
         )
 
         self.index = VectorStoreIndex.from_documents(self.docs, service_context=self.service_context)
+        self.query_engine = self.index.as_query_engine()
 
     def _generate_docs(self):
         self.docs = SimpleDirectoryReader(self.path).load_data()
 
-    def _generate_metadata(self):
+    def _generate_metadata(self, path: str):
         self.metadata = [doc.metadata for doc in self.docs]
+        with open(path, 'w') as metadata:
+            json.dump(self.metadata, fp=metadata)
 
     def _create_model(self, model_version: str, query_wrapper: str, system_prompt: str):
         self.model = Ollama(model=model_version,
@@ -52,8 +55,9 @@ class RAG:
                             system_prompt=system_prompt)
 
     def query(self, question: str):
-        query_engine = self.index.as_query_engine()
-        pprint_response(query_engine.query(question), show_source=True)
+        response = self.query_engine.query(question)
+        # TODO: write entire response in output file
+        pprint_response(response, show_source=True)
 
 
 if __name__ == '__main__':
