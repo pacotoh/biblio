@@ -6,7 +6,6 @@ from llama_index.core.prompts.prompts import SimpleInputPrompt
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from llama_index.core import ServiceContext
 from llama_index.embeddings.langchain import LangchainEmbedding
-import pickle as pkl
 
 CONFIG_JSON = 'config/rag_config.json'
 
@@ -54,18 +53,6 @@ class RAG:
     def query(self, question: str):
         query_engine = self.index.as_query_engine()
         return query_engine.query(question)
-
-    @staticmethod
-    def save_rag_to_pickle(rag_to_save, path_to_pickle: str = 'config/rag_file.pkl'):
-        with open(path_to_pickle, mode='wb') as rag_file:
-            pkl.dump(rag_to_save, rag_file)
-
-        rag_file.close()
-
-    @staticmethod
-    def load_rag_from_pickle(path_to_pickle: str = 'config/rag_file.pkl'):
-        with open(path_to_pickle, mode='rb') as rag_file:
-            return pkl.load(rag_file)
 
 
 if __name__ == '__main__':
