@@ -18,6 +18,7 @@ class TextProperties:
     special_chars: str = field(init=False)
 
     def __post_init__(self):
+        self._clean_text()
         self.doc = TextProperties.nlp(self.text)
         self.lexical = self._lexical_attributes()
         self._sent_tokenize()
@@ -30,14 +31,26 @@ class TextProperties:
         self.special_chars = re.sub(pattern, '', self.text)
 
     def _clean_text(self):
-        text = re.sub(r'\[.*?\]', '', self.text)
+        self._clean_header_footer()
+        text = re.sub(r'\[.*?]', '', self.text)
         text = re.sub('–*', '', text)
         text = re.sub('—', '', text)
         text = re.sub(r'\n', ' ', text)
         text = re.sub('←→', '', text)
         text = re.sub(r'\s{2,}', ' ', text)
         text = re.sub(' ', ' ', text)
+        text = re.sub('--', ' ', text)
+        text = re.sub('\ufeff', '', text)
+        text = re.sub('™', '', text)
+        text = re.sub('\\*', '', text)
         self.text = text
+
+    def _clean_header_footer(self):
+        header = '\\*\\*\\* START OF .+ \\*\\*\\*'
+        footer = '\\*\\*\\* END OF .+ \\*\\*\\*'
+
+        if '*** START OF' in self.text:
+            self.text = re.split(footer, re.split(header, self.text)[1])[0]
 
     def _sent_tokenize(self):
         self.sentences = nltk.sent_tokenize(self.text)
@@ -77,4 +90,4 @@ class TextProperties:
 if __name__ == '__main__':
     with open('../../data/gt/content/20240404/pg500.txt', 'r') as pinocchio:
         tp = TextProperties(pinocchio.read())
-        print(tp.sentences[500])
+        print(tp.sentences)
