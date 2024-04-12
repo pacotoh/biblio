@@ -1,16 +1,20 @@
+import json
+import pickle
 import re
 from dataclasses import dataclass, field
-from typing import ClassVar
 import nltk
 import spacy
-from spacy.pipeline.senter import Language
-from spacy.matcher import Matcher
+from spacy.matcher import Matcher  # TODO: Create test matchings
+
+CONFIG_JSON = 'config/text_tokenizer.json'
+nlp = spacy.load("en_core_web_lg")
 
 
+# FIXME: Need to calculate values instead of store
 @dataclass
 class TextProperties:
-    text: str = field(default='', init=True)
-    nlp: ClassVar[Language] = spacy.load("en_core_web_lg")
+    path: str = field(init=True)
+    text: str = field(default='', init=False)
     sentences: list = field(default_factory=list, init=False)
     tokens: list = field(default_factory=list, init=False)
     entities: dict = field(default_factory=dict, init=False)
@@ -18,8 +22,12 @@ class TextProperties:
     special_chars: str = field(init=False)
 
     def __post_init__(self):
+        with open(self.path, 'r') as file:
+            self.text = file.read()
+
+        self.filename = self.path.split('/')[-1]
         self._clean_text()
-        self.doc = TextProperties.nlp(self.text)
+        self.doc = nlp(self.text)
         self.lexical = self._lexical_attributes()
         self._sent_tokenize()
         self._named_entities()
@@ -78,14 +86,18 @@ class TextProperties:
         self.entities = {ent.text: [ent.start_char, ent.end_char, ent.label_, spacy.explain(ent.label_)]
                          for ent in self.doc.ents}
 
-    def save_to_pickle(self):
-        pass
 
-    def load_from_pickle(self):
-        pass
+def save_to_pickle(text_properties: TextProperties):
+    json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+    with open(f"{json_data['pickle_folder']}{text_properties.filename.split('.')[0]}.pkl", 'wb') as file:
+        pickle.dump(text_properties, file)
+
+
+def load_from_pickle(path_to_text_properties: str) -> TextProperties:
+    with open(path_to_text_properties, 'rb') as file:
+        return pickle.load(file)
 
 
 if __name__ == '__main__':
-    with open('../../data/gt/content/20240404/pg500.txt', 'r') as pinocchio:
-        tp = TextProperties(pinocchio.read())
-        print(tp.verbs_lemma)
+    tp = TextProperties('../../data/gt/content/20240404/pg500.txt')
+    save_to_pickle(tp)
