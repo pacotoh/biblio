@@ -1,0 +1,4 @@
+{
+  "spacy_model": "en_core_web_lg",
+  "special_pattern": "[a-zA-z0-9.,!?\/:;\"\\'\\s]"
+}
