@@ -25,6 +25,7 @@ class TextProperties:
         self._named_entities()
         self._special_characters()
         self._matcher = Matcher(self.doc.vocab)
+        self.verbs_lemma = set([token.lemma_ for token in self.doc if token.pos_ == "VERB"])
 
     def _special_characters(self):
         pattern = r'[a-zA-z0-9.,!?/:;\"\'\s]'
@@ -77,9 +78,6 @@ class TextProperties:
         self.entities = {ent.text: [ent.start_char, ent.end_char, ent.label_, spacy.explain(ent.label_)]
                          for ent in self.doc.ents}
 
-    def _verbs_lemma(self) -> set:
-        return set([token.lemma_ for token in self.doc if token.pos_ == "VERB"])
-
     def save_to_pickle(self):
         pass
 
@@ -90,4 +88,4 @@ class TextProperties:
 if __name__ == '__main__':
     with open('../../data/gt/content/20240404/pg500.txt', 'r') as pinocchio:
         tp = TextProperties(pinocchio.read())
-        print(tp.sentences)
+        print(tp.verbs_lemma)
