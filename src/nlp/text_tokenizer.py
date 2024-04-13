@@ -7,7 +7,8 @@ import spacy
 from spacy.tokens.doc import Doc
 
 CONFIG_JSON = 'config/text_tokenizer.json'
-nlp = spacy.load("en_core_web_lg")
+config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+nlp = spacy.load(config['spacy_model'])
 
 
 @dataclass
@@ -39,7 +40,7 @@ class TextProperties:
         return state
 
     def _special_characters(self) -> str:
-        pattern = r'[a-zA-z0-9.,!?/:;\"\'\s]'
+        pattern = config['special_pattern']
         return re.sub(pattern, '', self.text)
 
     def _clean_text(self):
@@ -94,8 +95,7 @@ class TextProperties:
 
 
 def save_to_pickle(text_properties: TextProperties) -> None:
-    json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
-    with open(f"{json_data['pickle_folder']}{text_properties.filename.split('.')[0]}.pkl", 'wb') as file:
+    with open(f"{config['pickle_folder']}{text_properties.filename.split('.')[0]}.pkl", 'wb') as file:
         pickle.dump(text_properties, file)
 
 
@@ -105,5 +105,5 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
 
 
 if __name__ == '__main__':
-    tp = load_from_pickle('data/pg103.pkl')
-    print(tp.entities)
+    tp = TextProperties(path='../../data/gt/content/20240404/pg500.txt')
+    print(tp.text)
