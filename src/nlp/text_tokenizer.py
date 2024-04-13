@@ -11,6 +11,7 @@ import pandas as pd
 CONFIG_JSON = 'config/text_tokenizer.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 nlp = spacy.load(config['spacy_model'])
+nlp.max_length = config['nlp_max_length']
 
 
 @dataclass
@@ -110,8 +111,8 @@ class TextProperties:
     def entities_to_df(self) -> pd.DataFrame:
         entities_df = pd.DataFrame()
         for ent in self.entities.keys():
-            word_entity = tp.word_entity(word=ent)
-            word_lexical = tp.word_lexical(word=ent)
+            word_entity = self.word_entity(word=ent)
+            word_lexical = self.word_lexical(word=ent)
             entity_data = [{**v1, **v2} for v1 in word_entity.values() for v2 in word_lexical.values()]
             temp_df = pd.DataFrame(entity_data)
             entities_df = pd.concat([entities_df, temp_df], ignore_index=True)
@@ -120,7 +121,7 @@ class TextProperties:
     def lexical_to_df(self) -> pd.DataFrame:
         lexical_df = pd.DataFrame()
         for ent in self.lexical.keys():
-            word_entity = tp.word_lexical(word=ent)
+            word_entity = self.word_lexical(word=ent)
             temp_df = pd.DataFrame(word_entity.values())
             lexical_df = pd.concat([lexical_df, temp_df], ignore_index=True)
         return lexical_df
@@ -128,12 +129,12 @@ class TextProperties:
     def create_doc(self) -> Doc:
         return nlp(self.text)
 
-    def export_data(self) -> None:
+    def export_text_data(self) -> None:
         filename = self.filename.split('.')[0]
-        os.makedirs(name=f'data/{filename}/', exist_ok=True)
+        os.makedirs(name=f'{config["metadata_folder"]}{filename}/', exist_ok=True)
         save_to_pickle(self)
-        tp.entities_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_entities.csv')
-        tp.lexical_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_lexical.csv')
+        self.entities_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_entities.csv')
+        self.lexical_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_lexical.csv')
 
 
 def save_to_pickle(text_properties: TextProperties) -> None:
@@ -147,6 +148,16 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
         return pickle.load(file)
 
 
+def export_batch(path: str) -> None:
+    files = os.listdir(path)
+    text_files = [file for file in files if file.endswith('.txt')]
+
+    for text_file in text_files:
+        file_path = f'{path}{text_file}'
+        if not os.path.isdir(file_path):
+            text_prop = TextProperties(file_path)
+            text_prop.export_text_data()
+
+
 if __name__ == '__main__':
-    tp = TextProperties(path='../../data/wk/20240404/1st_Hum_Awards.txt')
-    tp.export_data()
+    export_batch('../../data/gt/content/20240404/')
