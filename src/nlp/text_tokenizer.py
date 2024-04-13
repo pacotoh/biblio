@@ -1,4 +1,5 @@
 import json
+import os
 import pickle
 import re
 from dataclasses import dataclass, field
@@ -127,9 +128,17 @@ class TextProperties:
     def create_doc(self) -> Doc:
         return nlp(self.text)
 
+    def export_data(self) -> None:
+        filename = self.filename.split('.')[0]
+        os.makedirs(name=f'data/{filename}/', exist_ok=True)
+        save_to_pickle(self)
+        tp.entities_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_entities.csv')
+        tp.lexical_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_lexical.csv')
+
 
 def save_to_pickle(text_properties: TextProperties) -> None:
-    with open(f"{config['pickle_folder']}{text_properties.filename.split('.')[0]}.pkl", 'wb') as file:
+    filename = text_properties.filename.split('.')[0]
+    with open(f"{config['metadata_folder']}{filename}/{filename}.pkl", 'wb') as file:
         pickle.dump(text_properties, file)
 
 
@@ -139,7 +148,5 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
 
 
 if __name__ == '__main__':
-    # tp = TextProperties(path='../../data/wk/20240404/1st_Hum_Awards.txt')
-    tp = load_from_pickle('data/1st_Hum_Awards.pkl')
-    tp.entities_to_df().to_csv('data/1st_Hum_Awards_entities.csv')
-    tp.lexical_to_df().to_csv('data/1st_Hum_Awards_lexical.csv')
+    tp = TextProperties(path='../../data/wk/20240404/1st_Hum_Awards.txt')
+    tp.export_data()
