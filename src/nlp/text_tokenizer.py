@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import nltk
 import spacy
 from spacy.tokens.doc import Doc
+import pandas as pd
 
 CONFIG_JSON = 'config/text_tokenizer.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
@@ -69,26 +70,59 @@ class TextProperties:
         return nltk.sent_tokenize(self.text)
 
     def _lexical_attributes(self) -> dict:
-        return {token.text: [token.i,
-                             token.text,
-                             token.is_alpha,
-                             token.is_punct,
-                             token.like_num,
-                             token.is_stop,
-                             token.is_oov,
-                             token.pos_,
-                             token.dep_,
-                             token.head.text,
-                             token.lemma_,
-                             token.tag_,
-                             token.shape_,
-                             token.has_vector,
-                             token.vector_norm]
+        return {token.text: {'index': token.i,
+                             'text': token.text,
+                             'is_alpha': token.is_alpha,
+                             'is_punct': token.is_punct,
+                             'like_num': token.like_num,
+                             'is_stop': token.is_stop,
+                             'out_of_vocab': token.is_oov,
+                             'part_of_speech': token.pos_,
+                             'shape': token.shape_,
+                             'dep': token.dep_,
+                             'head.text': token.head.text,
+                             'lemma': token.lemma_,
+                             'tag': token.tag_,
+                             'has_vector': token.has_vector,
+                             'vector_norm': token.vector_norm}
                 for token in self.doc}
 
+    def word_lexical(self, word: str) -> dict:
+        try:
+            return {word: self.lexical[word]}
+        except KeyError:
+            return {}
+
     def _named_entities(self) -> dict:
-        return {ent.text: [ent.start_char, ent.end_char, ent.label_, spacy.explain(ent.label_)]
+        return {ent.text: {'start_char': ent.start_char,
+                           'end_char': ent.end_char,
+                           'label': ent.label_,
+                           'label_explanation': spacy.explain(ent.label_)}
                 for ent in self.doc.ents}
+
+    def word_entity(self, word: str) -> dict:
+        try:
+            return {word: self.entities[word]}
+        except KeyError:
+            return {}
+
+    def entities_to_df(self) -> pd.DataFrame:
+        entities_df = pd.DataFrame()
+        for ent in self.entities.keys():
+            word_entity = tp.word_entity(word=ent)
+            word_lexical = tp.word_lexical(word=ent)
+            entity_data = [{**v1, **v2} for v1 in word_entity.values() for v2 in word_lexical.values()]
+            temp_df = pd.DataFrame(entity_data)
+            entities_df = pd.concat([entities_df, temp_df], ignore_index=True)
+        return entities_df
+
+    def lexical_to_df(self) -> pd.DataFrame:
+        lexical_df = pd.DataFrame()
+        for ent in self.lexical.keys():
+            word_entity = tp.word_lexical(word=ent)
+            temp_df = pd.DataFrame(word_entity.values())
+            lexical_df = pd.concat([lexical_df, temp_df], ignore_index=True)
+        return lexical_df
 
     def create_doc(self) -> Doc:
         return nlp(self.text)
@@ -105,5 +139,7 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
 
 
 if __name__ == '__main__':
-    tp = TextProperties(path='../../data/gt/content/20240404/pg500.txt')
-    print(tp.text)
+    # tp = TextProperties(path='../../data/wk/20240404/1st_Hum_Awards.txt')
+    tp = load_from_pickle('data/1st_Hum_Awards.pkl')
+    tp.entities_to_df().to_csv('data/1st_Hum_Awards_entities.csv')
+    tp.lexical_to_df().to_csv('data/1st_Hum_Awards_lexical.csv')
