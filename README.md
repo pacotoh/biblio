@@ -14,8 +14,8 @@ This repository was made for research purposes. I won't take responsibility for 
 | Goodreads     |   ✅    |
 | Gutenberg     |   ✅    |
 | Wikipedia     |   ✅    |
+| RAG           |   ✅    |
 | Data Cleaning |   🚧   |
-| RAG           |   🚧   |
 | Automation    |        |
 | Data Quality  |        |
 | PostgreSQL    |        |
