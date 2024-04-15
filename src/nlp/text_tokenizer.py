@@ -9,6 +9,7 @@ from spacy.tokens.doc import Doc
 import pandas as pd
 import logging
 from datetime import datetime
+import argparse
 
 CONFIG_JSON = 'config/text_tokenizer.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -174,5 +175,17 @@ def export_batch(path: str) -> None:
             text_prop.export_text_data()
 
 
+def exec():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--folder',
+                        type=str,
+                        default='20240404',
+                        help='folder name in format: [YYYYmmdd]')
+
+    args = vars(parser.parse_args())
+    input_folder: str = args.get("folder")
+    export_batch(f'{config["data_path"]}/{input_folder}/')
+
+
 if __name__ == '__main__':
-    export_batch('../../data/gt/content/20240404/')
+    exec()
