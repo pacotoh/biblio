@@ -3,5 +3,5 @@
   "special_pattern": "[a-zA-z0-9.,!?\/:;\"\\'\\s]",
   "data_path": "../../data/gt/content/",
   "metadata_folder": "../../data/gt/info/",
-  "nlp_max_length": 3108355
+  "nlp_max_length": 10000000
 }

@@ -7,11 +7,20 @@ import nltk
 import spacy
 from spacy.tokens.doc import Doc
 import pandas as pd
+import logging
+from datetime import datetime
 
 CONFIG_JSON = 'config/text_tokenizer.json'
+LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 nlp = spacy.load(config['spacy_model'])
 nlp.max_length = config['nlp_max_length']
+
+logging.basicConfig(
+    filename=f'../../logs/TT{LOG_FILE}.log',
+    level=logging.INFO,
+    format='[%(asctime)s]: %(levelname)s %(message)s'
+)
 
 
 @dataclass
@@ -29,6 +38,7 @@ class TextProperties:
             self.text = file.read()
 
         self.filename = self.path.split('/')[-1]
+        logging.info(msg=f'STARTED: TextProperties generation for {self.filename}: {datetime.now()}')
         self._clean_text()
         self.doc = nlp(self.text)
         self.lexical = self._lexical_attributes()
@@ -36,6 +46,7 @@ class TextProperties:
         self.entities = self._named_entities()
         self.special_chars = self._special_characters()
         self.verbs_lemma = set([token.lemma_ for token in self.doc if token.pos_ == "VERB"])
+        logging.info(msg=f'FINISHED: TextProperties generation for {self.filename}: {datetime.now()}')
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -132,8 +143,12 @@ class TextProperties:
     def export_text_data(self) -> None:
         filename = self.filename.split('.')[0]
         os.makedirs(name=f'{config["metadata_folder"]}{filename}/', exist_ok=True)
+
+        logging.info(msg=f'Pickle data generation for {self.filename}: {datetime.now()}')
         save_to_pickle(self)
+        logging.info(msg=f'Entities file generation for {self.filename}: {datetime.now()}')
         self.entities_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_entities.csv')
+        logging.info(msg=f'Lexical file generation for {self.filename}: {datetime.now()}')
         self.lexical_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_lexical.csv')
 
 
