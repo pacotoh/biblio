@@ -1,5 +1,5 @@
 {
-  "wiki_path": "https://{lang}.wikipedia.org/wiki/Special:Random",
-  "data_path": "../../data/wk/{lang}/",
+  "path": "https://en.wikipedia.org/wiki/Special:Random",
+  "data_path": "../../data/wk/",
   "batch_size": 200
 }

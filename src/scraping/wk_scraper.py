@@ -6,13 +6,11 @@ from bs4 import BeautifulSoup
 import os
 import concurrent.futures
 import schedule
-import argparse
-import re
 
 CONFIG_JSON = 'config/wk_config.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
+wiki_path = config['path']
 data_path = config['data_path']
-wiki_path = config['wiki_path']
 DATE_TIME = datetime.now().strftime('%Y%m%d%H%M%S')
 DATE = datetime.now().strftime('%Y%m%d')
 DATA_PATH = f'{config["data_path"]}{DATE}'
@@ -49,24 +47,6 @@ def exec():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--lang',
-                        type=str,
-                        default='en',
-                        help='language option in [en, es]')
-
-    args = vars(parser.parse_args())
-    lang: str = args.get("lang")
-
-    try:
-        wiki_path = re.sub('{lang}', lang, wiki_path)
-        data_path = config[re.sub('{lang}', lang, data_path)]
-    except IndexError:
-        wiki_path = re.sub('{lang}', 'en', wiki_path)
-        data_path = config[re.sub('{lang}', 'en', data_path)]
-
-    logging.info(msg=f'Article {wiki_path} processed')
-
     start_time = datetime.now()
     logging.info(msg=f'WK Scraping started at {start_time}')
     os.makedirs(f'{DATA_PATH}', exist_ok=True)
