@@ -14,7 +14,7 @@ import argparse
 CONFIG_JSON = 'config/text_tokenizer.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
-nlp = spacy.load(config['spacy_model'])
+nlp = spacy.load(config['spacy_model_en'])
 nlp.max_length = config['nlp_max_length']
 
 logging.basicConfig(

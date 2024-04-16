@@ -1,5 +1,6 @@
 {
-  "spacy_model": "en_core_web_lg",
+  "spacy_model_en": "en_core_web_lg",
+  "spacy_model_es": "es_core_news_lg",
   "special_pattern": "[a-zA-z0-9.,!?\/:;\"\\'\\s]",
   "data_path": "../../data/gt/content/",
   "metadata_folder": "../../data/gt/info/",
