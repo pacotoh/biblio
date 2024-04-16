@@ -12,7 +12,7 @@ config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 wiki_path = config['path']
 DATE_TIME = datetime.now().strftime('%Y%m%d%H%M%S')
 DATE = datetime.now().strftime('%Y%m%d')
-DATA_PATH = f'{config["data_path"]}20240417'
+DATA_PATH = f'{config["data_path"]}{DATE}'
 BATCH_SIZE = config['batch_size']
 
 logging.basicConfig(
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     start_time = datetime.now()
     logging.info(msg=f'WK Scraping started at {start_time}')
     os.makedirs(f'{DATA_PATH}', exist_ok=True)
-    end_time = start_time + timedelta(minutes=5)
+    end_time = start_time + timedelta(hours=8)
 
     schedule.every().minute.do(exec)
     while True:
