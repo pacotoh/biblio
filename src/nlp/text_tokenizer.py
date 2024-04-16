@@ -10,6 +10,7 @@ import pandas as pd
 import logging
 from datetime import datetime
 import argparse
+import concurrent.futures
 
 CONFIG_JSON = 'config/text_tokenizer.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -141,16 +142,16 @@ class TextProperties:
     def create_doc(self) -> Doc:
         return nlp(self.text)
 
-    def export_text_data(self) -> None:
+    def export_text_data(self, metadata_path: str) -> None:
         filename = self.filename.split('.')[0]
-        os.makedirs(name=f'{config["metadata_folder"]}{filename}/', exist_ok=True)
+        os.makedirs(name=f'{metadata_path}/', exist_ok=True)
 
         logging.info(msg=f'Pickle data generation for {self.filename}: {datetime.now()}')
         save_to_pickle(self)
         logging.info(msg=f'Entities file generation for {self.filename}: {datetime.now()}')
-        self.entities_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_entities.csv')
+        self.entities_to_df().to_csv(f'{metadata_path}/{filename}_entities.csv')
         logging.info(msg=f'Lexical file generation for {self.filename}: {datetime.now()}')
-        self.lexical_to_df().to_csv(f'{config["metadata_folder"]}/{filename}/{filename}_lexical.csv')
+        self.lexical_to_df().to_csv(f'{metadata_path}/{filename}_lexical.csv')
 
 
 def save_to_pickle(text_properties: TextProperties) -> None:
@@ -164,15 +165,13 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
         return pickle.load(file)
 
 
-def export_batch(path: str) -> None:
-    files = os.listdir(path)
-    text_files = [file for file in files if file.endswith('.txt')]
+def export_batch(text_file: str, input_folder: str) -> None:
+    data_path = f'{config["data_path"]}{input_folder}/{text_file}'
+    metadata_path = f'{config["metadata_folder"]}{text_file.split(".")[0]}'
 
-    for text_file in text_files:
-        file_path = f'{path}{text_file}'
-        if not os.path.isdir(file_path):
-            text_prop = TextProperties(file_path)
-            text_prop.export_text_data()
+    if not os.path.isdir(metadata_path):
+        text_prop = TextProperties(data_path)
+        text_prop.export_text_data(metadata_path)
 
 
 def exec():
@@ -184,7 +183,19 @@ def exec():
 
     args = vars(parser.parse_args())
     input_folder: str = args.get("folder")
-    export_batch(f'{config["data_path"]}/{input_folder}/')
+
+    files = os.listdir(f'{config["data_path"]}/{input_folder}/')
+    text_files = [file for file in files if file.endswith('.txt')]
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_export = {executor.submit(export_batch, text_file, input_folder): text_file for text_file in text_files}
+
+        for future in concurrent.futures.as_completed(future_export):
+            export = future_export[future]
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(msg='%r generated an exception: %s' % (export, e))
 
 
 if __name__ == '__main__':
