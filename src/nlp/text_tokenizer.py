@@ -42,7 +42,11 @@ class TextProperties:
         self.filename = self.path.split('/')[-1]
         logging.info(msg=f'STARTED: TextProperties generation for {self.filename}: {datetime.now()}')
         self._clean_text()
-        self.doc = nlp(self.text)
+        try:
+            self.doc = nlp(self.text)
+        except Exception as e:
+            logging.error(msg=f'NLP_MAX_LENGTH for {self.filename}: {e}')
+
         self.lexical = self._lexical_attributes()
         self.sentences = self._sent_tokenize()
         self.entities = self._named_entities()
@@ -150,8 +154,10 @@ class TextProperties:
         save_to_pickle(self)
         logging.info(msg=f'Entities file generation for {self.filename}: {datetime.now()}')
         self.entities_to_df().to_csv(f'{metadata_path}/{filename}_entities.csv')
+        del self.entities
         logging.info(msg=f'Lexical file generation for {self.filename}: {datetime.now()}')
         self.lexical_to_df().to_csv(f'{metadata_path}/{filename}_lexical.csv')
+        del self.lexical
 
 
 def save_to_pickle(text_properties: TextProperties) -> None:
@@ -172,6 +178,7 @@ def export_batch(text_file: str, input_folder: str) -> None:
     if not os.path.isdir(metadata_path):
         text_prop = TextProperties(data_path)
         text_prop.export_text_data(metadata_path)
+        del text_prop.doc
 
 
 def exec() -> None:
@@ -187,7 +194,7 @@ def exec() -> None:
     files = os.listdir(f'{config["data_path"]}/{input_folder}/')
     text_files = [file for file in files if file.endswith('.txt')]
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=config['max_workers']) as executor:
         future_export = {executor.submit(export_batch, text_file, input_folder): text_file for text_file in text_files}
 
         for future in concurrent.futures.as_completed(future_export):
