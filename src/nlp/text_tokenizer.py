@@ -35,7 +35,7 @@ class TextProperties:
     lexical: dict = field(default_factory=dict, init=False)
     special_chars: str = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         with open(self.path, 'r') as file:
             self.text = file.read()
 
@@ -50,7 +50,7 @@ class TextProperties:
         self.verbs_lemma = set([token.lemma_ for token in self.doc if token.pos_ == "VERB"])
         logging.info(msg=f'FINISHED: TextProperties generation for {self.filename}: {datetime.now()}')
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         state = self.__dict__.copy()
         del state['doc']
         return state
@@ -59,7 +59,7 @@ class TextProperties:
         pattern = config['special_pattern']
         return re.sub(pattern, '', self.text)
 
-    def _clean_text(self):
+    def _clean_text(self) -> None:
         self._clean_header_footer()
         text = re.sub(r'\[.*?]', '', self.text)
         text = re.sub('–*', '', text)
@@ -74,7 +74,7 @@ class TextProperties:
         text = re.sub('\\*', '', text)
         self.text = text
 
-    def _clean_header_footer(self):
+    def _clean_header_footer(self) -> None:
         header = '\\*\\*\\* START OF .+ \\*\\*\\*'
         footer = '\\*\\*\\* END OF .+ \\*\\*\\*'
 
@@ -174,7 +174,7 @@ def export_batch(text_file: str, input_folder: str) -> None:
         text_prop.export_text_data(metadata_path)
 
 
-def exec():
+def exec() -> None:
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder',
                         type=str,
