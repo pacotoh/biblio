@@ -49,7 +49,7 @@ if __name__ == '__main__':
     start_time = datetime.now()
     logging.info(msg=f'WK Scraping started at {start_time}')
     os.makedirs(f'{DATA_PATH}', exist_ok=True)
-    end_time = start_time + timedelta(hours=8)
+    end_time = start_time + timedelta(hours=config['execution_time'])
 
     schedule.every().minute.do(exec)
     while True:

@@ -15,6 +15,7 @@ import schedule
 options = Options()
 options.add_argument("--headless")
 CONFIG_JSON = 'config/gr_config.json'
+json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
 
 logging.basicConfig(
@@ -32,7 +33,6 @@ class Book:
     data: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.url = f"{json_data['path']}{self.book_id}"
         self.soup = BeautifulSoup(requests.get(self.url).text, features='html.parser')
         self._load_data()
@@ -165,7 +165,7 @@ class GoodreadsScraper:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    end_time = start_time + timedelta(hours=8)
+    end_time = start_time + timedelta(hours=json_data['execution_time'])
     config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
     os.makedirs(f'{config["data_path"]}', exist_ok=True)
 

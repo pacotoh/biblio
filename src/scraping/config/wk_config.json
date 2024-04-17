@@ -1,5 +1,6 @@
 {
   "path": "https://en.wikipedia.org/wiki/Special:Random",
   "data_path": "../../data/wk/",
-  "batch_size": 200
+  "batch_size": 200,
+  "execution_time": 8
 }
