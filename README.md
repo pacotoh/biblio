@@ -18,5 +18,6 @@ This repository was made for research purposes. I won't take responsibility for 
 | Data Cleaning |   🚧   |
 | Automation    |        |
 | Data Quality  |        |
+| Visualization |        |
 | PostgreSQL    |        |
 | ML Models     |        |

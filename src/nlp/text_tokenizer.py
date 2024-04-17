@@ -11,6 +11,7 @@ import logging
 from datetime import datetime
 import argparse
 import concurrent.futures
+from sklearn.feature_extraction.text import CountVectorizer
 
 CONFIG_JSON = 'config/text_tokenizer.json'
 LOG_FILE = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -34,6 +35,7 @@ class TextProperties:
     entities: dict = field(default_factory=dict, init=False)
     lexical: dict = field(default_factory=dict, init=False)
     special_chars: str = field(init=False)
+    dtm: pd.DataFrame = field(init=False)
 
     def __post_init__(self) -> None:
         with open(self.path, 'r') as file:
@@ -146,7 +148,7 @@ class TextProperties:
     def create_doc(self) -> Doc:
         return nlp(self.text)
 
-    def export_text_data(self, metadata_path: str) -> None:
+    def export_text_data(self, metadata_path: str, cv: CountVectorizer) -> None:
         filename = self.filename.split('.')[0]
         os.makedirs(name=f'{metadata_path}/', exist_ok=True)
 
@@ -158,6 +160,13 @@ class TextProperties:
         logging.info(msg=f'Lexical file generation for {self.filename}: {datetime.now()}')
         self.lexical_to_df().to_csv(f'{metadata_path}/{filename}_lexical.csv')
         del self.lexical
+        self.create_dtm(metadata_path, cv)
+        logging.info(msg=f'DTM file generation for {self.filename}: {datetime.now()}')
+
+    def create_dtm(self, metadata_path: str, cv: CountVectorizer) -> None:
+        data_cv = cv.fit_transform([self.text])
+        self.dtm = pd.DataFrame(data_cv.toarray(), columns=cv.get_feature_names_out())
+        self.dtm.to_csv(f'{metadata_path}/dtm.csv')
 
 
 def save_to_pickle(text_properties: TextProperties) -> None:
@@ -171,13 +180,13 @@ def load_from_pickle(path_to_text_properties: str) -> TextProperties:
         return pickle.load(file)
 
 
-def export_batch(text_file: str, input_folder: str) -> None:
+def export_batch(text_file: str, input_folder: str, cv: CountVectorizer) -> None:
     data_path = f'{config["data_path"]}{input_folder}/{text_file}'
     metadata_path = f'{config["metadata_folder"]}{text_file.split(".")[0]}'
 
     if not os.path.isdir(metadata_path):
         text_prop = TextProperties(data_path)
-        text_prop.export_text_data(metadata_path)
+        text_prop.export_text_data(metadata_path, cv)
         del text_prop.doc
 
 
@@ -194,8 +203,11 @@ def exec() -> None:
     files = os.listdir(f'{config["data_path"]}/{input_folder}/')
     text_files = [file for file in files if file.endswith('.txt')]
 
+    cv = CountVectorizer(stop_words='english')
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=config['max_workers']) as executor:
-        future_export = {executor.submit(export_batch, text_file, input_folder): text_file for text_file in text_files}
+        future_export = {executor.submit(export_batch, text_file, input_folder, cv): text_file
+                         for text_file in text_files}
 
         for future in concurrent.futures.as_completed(future_export):
             export = future_export[future]

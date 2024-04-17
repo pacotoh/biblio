@@ -5,5 +5,5 @@
   "data_path": "../../data/gt/content/",
   "metadata_folder": "../../data/gt/info/",
   "nlp_max_length": 10000000,
-  "max_workers": 8
+  "max_workers": 16
 }
