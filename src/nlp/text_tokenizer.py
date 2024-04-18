@@ -152,8 +152,6 @@ class TextProperties:
         filename = self.filename.split('.')[0]
         os.makedirs(name=f'{metadata_path}/', exist_ok=True)
 
-        logging.info(msg=f'Pickle data generation for {self.filename}: {datetime.now()}')
-        save_to_pickle(self)
         logging.info(msg=f'Entities file generation for {self.filename}: {datetime.now()}')
         self.entities_to_df().to_csv(f'{metadata_path}/{filename}_entities.csv')
         del self.entities
@@ -162,6 +160,9 @@ class TextProperties:
         del self.lexical
         self.create_dtm(metadata_path, cv)
         logging.info(msg=f'DTM file generation for {self.filename}: {datetime.now()}')
+        with open(f'{metadata_path}/{filename}_text.txt', 'w') as text:
+            text.write(self.text)
+        logging.info(msg=f'Text file generation for {self.filename}: {datetime.now()}')
 
     def create_dtm(self, metadata_path: str, cv: CountVectorizer) -> None:
         data_cv = cv.fit_transform([self.text])
