@@ -1,5 +1,7 @@
 import os
 import json
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 CONFIG_JSON = 'config/embeddings.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
@@ -12,13 +14,15 @@ def load_text(filename: str) -> str:
     return content
 
 
-def create_corpus() -> list[str]:
-    files = os.listdir(f'{INFO_BASE_PATH}/')
-    return [load_text(f'{file}') for file in files]
+def create_corpus(base_path: str) -> dict[str, str]:
+    files = os.listdir(base_path)
+    return {file: load_text(f'{file}') for file in files}
 
 
-def tf_idf() -> None:
-    pass
+def tf_idf(base_path: str) -> TfidfVectorizer:
+    tfidf_vec = TfidfVectorizer(stop_words='english')
+    corpus = create_corpus(base_path)
+    return tfidf_vec.fit_transform(corpus.values())
 
 
 def word_to_vec() -> None:
@@ -42,4 +46,4 @@ def skip_gram() -> None:
 
 
 if __name__ == '__main__':
-    print(create_corpus())
+    print(tf_idf(INFO_BASE_PATH))
