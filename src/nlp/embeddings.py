@@ -6,7 +6,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import word_tokenize, sent_tokenize
 import numpy as np
 
-
 CONFIG_JSON = 'config/embeddings.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 INFO_BASE_PATH = config['info_base_path']
@@ -24,15 +23,14 @@ def create_corpus(base_path: str) -> dict[str, str]:
     return {file: load_text(f'{file}') for file in files}
 
 
-def tf_idf(base_path: str) -> TfidfVectorizer:
+def tf_idf(corpus_param: dict):
     tfidf_vec = TfidfVectorizer(stop_words=LANGUAGE)
-    corpus = create_corpus(base_path)
-    return tfidf_vec.fit_transform(corpus.values())
+    return tfidf_vec.fit_transform(corpus_param.values())
 
 
-def co_ocurrence_matrix(corpus: list, window_size: int = 3) -> dict[str, np.array]:
+def co_ocurrence_matrix(corpus_param: list, window_size: int = 3) -> dict[str, np.array]:
     unique_words = set()
-    for text in corpus:
+    for text in corpus_param:
         for word in word_tokenize(text):
             unique_words.add(word)
 
@@ -67,9 +65,8 @@ def skip_gram() -> None:
     pass
 
 
-def export_data(base_path: str) -> None:
-    corpus = create_corpus(base_path)
-    for text in corpus.items():
+def export_com(base_path: str, corpus_param: dict) -> None:
+    for text in corpus_param.items():
         sentences = sent_tokenize(text[1])
         name = text[0]
         # TODO: Create co-ocurrence matrices concurrently
@@ -78,4 +75,9 @@ def export_data(base_path: str) -> None:
 
 
 if __name__ == '__main__':
-    export_data(INFO_BASE_PATH)
+    # export_data(INFO_BASE_PATH)
+    corpus = create_corpus(INFO_BASE_PATH)
+    tf_idf(corpus).toarray().tofile(f'{INFO_BASE_PATH}tfidf.csv', sep=',')
+    print(tf_idf(corpus))
+
+
