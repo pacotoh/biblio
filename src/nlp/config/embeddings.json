@@ -1,3 +1,4 @@
 {
-  "info_base_path": "../../data/gt/info/"
+  "info_base_path": "../../data/gt/info/",
+  "language": "english"
 }
