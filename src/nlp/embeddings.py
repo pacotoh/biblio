@@ -1,6 +1,5 @@
 import os
 import json
-
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -49,6 +48,15 @@ def co_ocurrence_matrix(corpus_param: list, window_size: int = 3) -> dict[str, n
     return word_search_dict
 
 
+def export_com(base_path: str, corpus_param: dict) -> None:
+    for text in corpus_param.items():
+        sentences = sent_tokenize(text[1])
+        name = text[0]
+        # TODO: Create co-ocurrence matrices concurrently
+        com = co_ocurrence_matrix(sentences)
+        pd.DataFrame(com, index=com.keys()).astype('int').to_csv(f'{base_path}{name}/{name}_com.csv')
+
+
 def word_to_vec() -> None:
     pass
 
@@ -65,19 +73,7 @@ def skip_gram() -> None:
     pass
 
 
-def export_com(base_path: str, corpus_param: dict) -> None:
-    for text in corpus_param.items():
-        sentences = sent_tokenize(text[1])
-        name = text[0]
-        # TODO: Create co-ocurrence matrices concurrently
-        com = co_ocurrence_matrix(sentences)
-        pd.DataFrame(com, index=com.keys()).astype('int').to_csv(f'{base_path}{name}/{name}_com.csv')
-
-
 if __name__ == '__main__':
-    # export_data(INFO_BASE_PATH)
     corpus = create_corpus(INFO_BASE_PATH)
     tf_idf(corpus).toarray().tofile(f'{INFO_BASE_PATH}tfidf.csv', sep=',')
     print(tf_idf(corpus))
-
-
