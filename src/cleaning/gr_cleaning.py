@@ -52,8 +52,18 @@ def clean_genres(df: pd.DataFrame) -> pd.DataFrame:
     pass
 
 
+def clean_language(df: pd.DataFrame) -> pd.DataFrame:
+    lang_dummies = pd.get_dummies(df['language'])
+    info = pd.concat([df, lang_dummies], axis=1)
+    info.drop(['language'], inplace=True, axis=1)
+    return info
+
+
 def clean_format(df: pd.DataFrame) -> pd.DataFrame:
-    pass
+    form_dummies = pd.get_dummies(df['format'])
+    info = pd.concat([df, form_dummies], axis=1)
+    info.drop(['format'], inplace=True, axis=1)
+    return info
 
 
 if __name__ == '__main__':
