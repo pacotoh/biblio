@@ -63,7 +63,7 @@ def clean_genres(df: pd.DataFrame) -> pd.DataFrame:
     pass
 
 
-def clean_review_count_by_lang(df: pd.DataFrame) -> pd.DataFrame
+def clean_review_count_by_lang(df: pd.DataFrame) -> pd.DataFrame:
     pass
 
 
