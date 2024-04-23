@@ -74,12 +74,13 @@ def clean_review_count_by_lang(df: pd.DataFrame) -> pd.DataFrame:
 def get_dummies(df: pd.DataFrame, column: str) -> pd.DataFrame:
     dummies = pd.get_dummies(df[column])
     info = pd.concat([df, dummies], axis=1)
-    info.drop([column], inplace=True, axis=1)
+    info.drop(labels=[column], inplace=True, axis=1)
     return info
 
 
 if __name__ == '__main__':
     data = join_data()
+    print(len(data))
     df_info = get_info_values(data)
     df_cleaned = clean_first_step(data)
     df_cleaned = get_dummies(df_cleaned, 'format')
