@@ -38,6 +38,17 @@ def clean_first_step(df: pd.DataFrame) -> pd.DataFrame:
     return info
 
 
+def get_info_values(df: pd.DataFrame) -> pd.DataFrame:
+    return df[['title',
+               'desc',
+               'pub_info',
+               'cover',
+               'id',
+               'publication_timestamp',
+               'isbn',
+               'isbn13']]
+
+
 def clean_counts(df: pd.DataFrame) -> pd.DataFrame:
     df['rating_count'] = df['rating_count'].convert_dtypes()
     df.fillna({'rating_count': 0}, inplace=True)
@@ -52,21 +63,21 @@ def clean_genres(df: pd.DataFrame) -> pd.DataFrame:
     pass
 
 
-def clean_language(df: pd.DataFrame) -> pd.DataFrame:
-    lang_dummies = pd.get_dummies(df['language'])
-    info = pd.concat([df, lang_dummies], axis=1)
-    info.drop(['language'], inplace=True, axis=1)
-    return info
+def clean_review_count_by_lang(df: pd.DataFrame) -> pd.DataFrame
+    pass
 
 
-def clean_format(df: pd.DataFrame) -> pd.DataFrame:
-    form_dummies = pd.get_dummies(df['format'])
-    info = pd.concat([df, form_dummies], axis=1)
-    info.drop(['format'], inplace=True, axis=1)
+def get_dummies(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    dummies = pd.get_dummies(df[column])
+    info = pd.concat([df, dummies], axis=1)
+    info.drop([column], inplace=True, axis=1)
     return info
 
 
 if __name__ == '__main__':
     data = join_data()
+    df_info = get_info_values(data)
     df_cleaned = clean_first_step(data)
+    df_cleaned = get_dummies(df_cleaned, 'format')
+    df_cleaned = get_dummies(df_cleaned, 'language')
     print(df_cleaned)
