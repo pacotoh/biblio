@@ -60,11 +60,15 @@ def clean_counts(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_genres(df: pd.DataFrame) -> pd.DataFrame:
-    pass
+    # TODO: Create genres column with one shot encoding
+    df_genres = df['genres'].fillna(value='[]')
+    return df_genres
 
 
 def clean_review_count_by_lang(df: pd.DataFrame) -> pd.DataFrame:
-    pass
+    # TODO: Create columns for each language (keys) and fill with the count (values)
+    df_rcl = df['review_count_by_lang'].fillna(value="{'en': 0}")
+    return df_rcl
 
 
 def get_dummies(df: pd.DataFrame, column: str) -> pd.DataFrame:
