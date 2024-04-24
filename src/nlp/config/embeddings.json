@@ -1,4 +1,5 @@
 {
   "info_base_path": "../../data/gt/info/",
-  "language": "english"
+  "language": "english",
+  "hashing_features": 100000
 }

@@ -4,11 +4,18 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import word_tokenize, sent_tokenize
 import numpy as np
+from pyspark.sql import SparkSession
+from pyspark import SparkContext, RDD
+from pyspark.mllib.feature import HashingTF, IDF
 
 CONFIG_JSON = 'config/embeddings.json'
 config = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
 INFO_BASE_PATH = config['info_base_path']
 LANGUAGE = config['language']
+HASHING_FEATURES = config['hashing_features']
+
+spark = SparkSession.builder.master('local[*]').appName('spark-tfidf').getOrCreate()
+sc = SparkContext.getOrCreate()
 
 
 def load_text(filename: str) -> str:
@@ -55,6 +62,24 @@ def export_com(base_path: str, corpus_param: dict) -> None:
         # TODO: Create co-ocurrence matrices concurrently
         com = co_ocurrence_matrix(sentences)
         pd.DataFrame(com, index=com.keys()).astype('int').to_csv(f'{base_path}{name}/{name}_com.csv')
+
+
+def hash_tf_search(data_file: str, word_search: str, min_doc_freq: int = 2) -> RDD[tuple[float, str]]:
+    raw_data = sc.textFile(data_file)
+    fields = raw_data.map(lambda x: x.split('\t'))
+    documents = fields.map(lambda x: x[3].split(' '))
+    document_names = fields.map(lambda x: x[1])
+
+    hashing = HashingTF(HASHING_FEATURES)
+    tf = hashing.transform(documents)
+    idf = IDF(minDocFreq=min_doc_freq).fit(tf)
+    tfidf = idf.transform(tf)
+    word_tf = hashing.transform([word_search])
+
+    word_hash_value = word_tf.indices[0]
+    word_relevance = tfidf.map(lambda x: x[int(word_hash_value)])
+
+    return word_relevance.zip(document_names)
 
 
 def word_to_vec() -> None:
