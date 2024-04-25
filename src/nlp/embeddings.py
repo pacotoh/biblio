@@ -64,8 +64,8 @@ def export_com(base_path: str, corpus_param: dict) -> None:
         pd.DataFrame(com, index=com.keys()).astype('int').to_csv(f'{base_path}{name}/{name}_com.csv')
 
 
-def hash_tf_search(data_file: str, word_search: str, min_doc_freq: int = 2) -> RDD[tuple[float, str]]:
-    raw_data = sc.textFile(data_file)
+def hash_tf_search(data_path: str, word_search: str, min_doc_freq: int = 2) -> RDD[tuple[float, str]]:
+    raw_data = sc.textFile(data_path)
     fields = raw_data.map(lambda x: x.split('\t'))
     documents = fields.map(lambda x: x[3].split(' '))
     document_names = fields.map(lambda x: x[1])
