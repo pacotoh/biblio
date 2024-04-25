@@ -5,5 +5,6 @@
   "data_path": "./data",
   "embedding_model": "sentence-transformers/all-mpnet-base-v2",
   "chunk_size": 1024,
-  "metadata_path": "config/metadata.json"
+  "metadata_path": "config/metadata.json",
+  "output_path": "output"
 }

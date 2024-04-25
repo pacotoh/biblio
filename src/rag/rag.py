@@ -5,8 +5,10 @@ from llama_index.core.response.pprint_utils import pprint_response
 from llama_index.llms.ollama import Ollama
 from llama_index.core.prompts.prompts import SimpleInputPrompt
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
-from llama_index.core import ServiceContext
 from llama_index.embeddings.langchain import LangchainEmbedding
+from llama_index.core import Settings
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.node_parser import TokenTextSplitter
 
 CONFIG_JSON = 'config/rag_config.json'
 
@@ -21,6 +23,7 @@ class RAG:
     def __post_init__(self):
         json_data = json.load(open(file=CONFIG_JSON, encoding='utf-8'))
         self.path = json_data['data_path']
+        self.output_path = json_data['output_path']
         self.embed_model = LangchainEmbedding(HuggingFaceEmbeddings(model_name=json_data['embedding_model']))
 
         self._create_model(
@@ -32,13 +35,18 @@ class RAG:
         self._generate_docs()
         self._generate_metadata(json_data['metadata_path'])
 
-        self.service_context = ServiceContext.from_defaults(
-            chunk_size=json_data['chunk_size'],
-            llm=self.model,
-            embed_model=self.embed_model
-        )
+        Settings.llm = self.model
+        Settings.embed_model = self.embed_model
+        Settings.node_parser = SentenceSplitter(chunk_size=json_data['chunk_size'], chunk_overlap=20)
+        Settings.num_output = 512
+        Settings.context_window = 3900
 
-        self.index = VectorStoreIndex.from_documents(self.docs, service_context=self.service_context)
+        transformations = [
+            TokenTextSplitter(chunk_size=512, chunk_overlap=128),
+        ]
+        self.index = VectorStoreIndex.from_documents(documents=self.docs,
+                                                     embed_model=self.embed_model, transformations=transformations)
+
         self.query_engine = self.index.as_query_engine()
 
     def _generate_docs(self):
@@ -56,7 +64,11 @@ class RAG:
 
     def query(self, question: str):
         response = self.query_engine.query(question)
-        # TODO: write entire response in output file
+        source_text = response.get_formatted_sources(length=200)
+        output_string = "Response: {}\nSources:\n{}".format(response, source_text)
+        with open(f'{self.output_path}/output.txt', 'w') as output:
+            output.write(output_string)
+
         pprint_response(response, show_source=True)
 
 
