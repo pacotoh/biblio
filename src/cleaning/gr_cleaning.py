@@ -16,7 +16,7 @@ def join_data() -> pd.DataFrame:
 
 def export_data(df: pd.DataFrame) -> None:
     date = datetime.now().strftime('%Y%m%d%H%M%S')
-    df.to_csv(f'{GR_DATA_PATH}/{date}.csv')
+    df.to_csv(f'{GR_DATA_PATH}/{date}.csv', index=False)
 
 
 def clean_first_step(df: pd.DataFrame) -> pd.DataFrame:
@@ -85,4 +85,5 @@ if __name__ == '__main__':
     df_cleaned = clean_first_step(data)
     df_cleaned = get_dummies(df_cleaned, 'format')
     df_cleaned = get_dummies(df_cleaned, 'language')
+    export_data(df_cleaned)
     print(df_cleaned)
