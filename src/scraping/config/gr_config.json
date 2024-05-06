@@ -1,5 +1,6 @@
 {
-  "last_book_id": 1,
+  "last_book_id": 111827,
   "path": "https://www.goodreads.com/book/show/",
-  "data_path": "../../data/gr/"
+  "data_path": "../../data/gr/",
+  "execution_time": 12
 }
