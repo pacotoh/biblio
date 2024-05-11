@@ -127,10 +127,13 @@ class GoodreadsScraper:
         self.output_folder = self.json_data['data_path']
 
     def _append_book(self):
-        book = Book(book_id=self.last_book_id)
-        if book and book.data:
-            self.books.append(book.data)
-            logging.info(msg=f'Book {self.last_book_id} added')
+        try:
+            book = Book(book_id=self.last_book_id)
+            if book and book.data:
+                self.books.append(book.data)
+                logging.info(msg=f'Book {self.last_book_id} added')
+        except requests.exceptions.ConnectTimeout:
+            logging.error(msg=f'Book {self.last_book_id} error: max retries exceeded')
 
         self.last_book_id += 1
 
